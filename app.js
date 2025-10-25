@@ -8,7 +8,7 @@ const multer = require('multer');
 require("dotenv").config();
 const dev = process.env.NODE_ENV !== "production";
 const app = express();
-const port = 3000;
+const port = 8080;
 const mongoUrl = process.env.MONGO_URI;
 
 mongoose
@@ -53,7 +53,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const registerRoutes = require("./routes/register");
 
 
-app.use("/register", registerRoutes);
+app.use("/api", registerRoutes);
 // app.use("/employees", employeeRoutes);
 // app.use("/products", require("./routes/productRoute"));
 // app.use("/videos", require("./routes/videoRoutes"));
