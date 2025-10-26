@@ -1,15 +1,89 @@
+const bcrypt = require("bcrypt");
+const twilio = require("twilio");
 const Register= require('../models/register');
+
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+
 
 const registerUser= async (req,res)=>{
     const { mobile, name, isAgent, isOtpVerified=false } = req.body;
     try {
-        const newUser = new Register({ mobile, name, isAgent, isOtpVerified });
+        const existingUser = await Register.findOne({ mobile });
+        console.log("Existing user found:", existingUser);
+        if (existingUser) {
+            return res.status(400).json({ message: "Mobile number already registered" });
+        }
+        const otp = generateOtp();
+        const newUser = new Register({ mobile, name, isAgent, isOtpVerified, otp, otpExpires: Date.now() + 5 * 60 * 1000 });
         await newUser.save();
-        res.status(201).json({ message: "User registered successfully", user: newUser });
+        res.status(200).json({
+      message: "User registered and OTP sent successfully",
+      mobile,
+        otp
+    });
     } catch (error) {
         console.error("Error registering user:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-module.exports = { registerUser };
+const loginUser = async (req, res) => {
+    const { mobile } = req.body;
+    try {
+        const user = await Register.findOne({ mobile });
+        if (!user) {
+            const otp = generateOtp();
+            const newUser = new Register({
+                 mobile,
+                  otp,
+                  otpExpires: Date.now() + 5 * 60 * 1000,
+                  isAgent: false,
+                  isOtpVerified: false,
+                  name: "Guest"
+              });
+            await newUser.save();
+            user = newUser;
+            res.status(200).json({ message: "OTP sent successfully" , mobile, otp: otp });
+        }else{
+            const otp = generateOtp();
+            user.otp = otp;
+            user.otpExpires = Date.now() + 5 * 60 * 1000;
+            await user.save();
+            res.status(200).json({ message: "OTP sent successfully", mobile, otp: otp });
+        }
+     
+    } catch (error) {
+        console.error("Error logging in user:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const verifyOtp = async (req, res) => {
+    const { mobile, otp } = req.body;
+
+    try {
+        const user = await Register.findOne({ mobile });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        user.isOtpVerified = true;
+        await user.save();
+        res.status(200).json({ message: "OTP verified successfully", userId: user._id });
+    } catch (error) {
+        console.error("Error verifying OTP:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+module.exports = { registerUser, verifyOtp, loginUser };

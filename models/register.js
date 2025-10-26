@@ -2,6 +2,7 @@ const mongoose= require('mongoose');
 const registerSchema= new mongoose.Schema({
     mobile:{
         type: String,
+        unique: true,
     },
     name:{
         type: String,
@@ -11,7 +12,13 @@ const registerSchema= new mongoose.Schema({
     },
     isOtpVerified:{
         type: Boolean,
-    }
+    },
+    otp:{
+        type: String,
+    },
+     otpExpires: { 
+        type: Date 
+    },
 });
 
 const Register= mongoose.model('Register', registerSchema);
