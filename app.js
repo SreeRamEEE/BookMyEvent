@@ -46,11 +46,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //   })
 // );
 
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// app.use('/videos', express.static(path.join(__dirname, 'videos')));
+app.use('/category_thumbnails', express.static(path.join(__dirname, 'category_thumbnails')));
+app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
 // -------------------- Routes --------------------
 const registerRoutes = require("./routes/register");
+const categoryRoutes = require("./routes/categoryConfig");
+
+app.use("/api", categoryRoutes);
 
 
 app.use("/api", registerRoutes);
