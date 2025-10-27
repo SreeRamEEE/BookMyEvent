@@ -11,7 +11,7 @@ const app = express();
 const port = 8080;
 const mongoUrl = process.env.MONGO_URI;
 
-mongoose
+mongoose 
   .connect(mongoUrl)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));

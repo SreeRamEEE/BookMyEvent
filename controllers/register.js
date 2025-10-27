@@ -17,16 +17,22 @@ const registerUser= async (req,res)=>{
         const existingUser = await Register.findOne({ mobile });
         console.log("Existing user found:", existingUser);
         if (existingUser) {
-            return res.status(400).json({ message: "Mobile number already registered" });
+            return res.status(400).json({
+                data: null,
+                existingUser: true,
+                message: "Mobile number already registered"
+            });
         }
         const otp = generateOtp();
         const newUser = new Register({ mobile, name, isAgent, isOtpVerified, otp, otpExpires: Date.now() + 5 * 60 * 1000 });
         await newUser.save();
         res.status(200).json({
-      message: "User registered and OTP sent successfully",
-      mobile,
-        otp
-    });
+            data:{
+                mobile,
+                otp
+            },
+            message: "User registered and OTP sent successfully"
+        });
     } catch (error) {
         console.error("Error registering user:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -49,13 +55,25 @@ const loginUser = async (req, res) => {
               });
             await newUser.save();
             user = newUser;
-            res.status(200).json({ message: "OTP sent successfully" , mobile, otp: otp });
+            res.status(200).json({
+                data:{
+                    mobile,
+                    otp
+                },
+                message: "User registered and OTP sent successfully"
+            });
         }else{
             const otp = generateOtp();
             user.otp = otp;
             user.otpExpires = Date.now() + 5 * 60 * 1000;
             await user.save();
-            res.status(200).json({ message: "OTP sent successfully", mobile, otp: otp });
+            res.status(200).json({
+                data: {
+                    mobile,
+                    otp
+                },
+                message: "OTP sent successfully"
+            });
         }
      
     } catch (error) {
@@ -70,16 +88,25 @@ const verifyOtp = async (req, res) => {
     try {
         const user = await Register.findOne({ mobile });
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({
+                data: null,
+                message: "User not found"
+            });
         }
 
         if (user.otp !== otp) {
-            return res.status(400).json({ message: "Invalid OTP" });
+            return res.status(400).json({
+                data: null,
+                message: "Invalid OTP"
+            });
         }
 
         user.isOtpVerified = true;
         await user.save();
-        res.status(200).json({ message: "OTP verified successfully", userId: user._id });
+        res.status(200).json({
+            data: { userId: user._id, name: user.name },
+            message: "OTP verified successfully"
+        });
     } catch (error) {
         console.error("Error verifying OTP:", error);
         res.status(500).json({ message: "Internal server error" });
