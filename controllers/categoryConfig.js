@@ -29,6 +29,7 @@ const getAllCategoryConfigs= async (req, res) => {
                 category: cat.category,
                 location: cat.location,
                 description: cat.description,
+                categoryId: cat._id,
                 imageUrl: `http://localhost:8080${cat.imageUrl}`
             })
             )
