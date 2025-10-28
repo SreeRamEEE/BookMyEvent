@@ -197,10 +197,10 @@ const uploadVenueImage= async (req, res) => {
 module.exports= { 
     createCategoryConfig, 
     getAllCategoryConfigs,
-     createVenues, 
-     createJewellery, 
-     createPhotographer,
-      getVenuesByCategoryId,
-       getJewelleryByCategoryId,
-        uploadVenueImage
+    createVenues, 
+    createJewellery, 
+    createPhotographer,
+    getVenuesByCategoryId,
+    getJewelleryByCategoryId,
+    uploadVenueImage
     };
