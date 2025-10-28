@@ -4,6 +4,7 @@ const Jewellery= require('../models/jewellery');
 const Photographer= require('../models/photographer');
 const VenueGallery= require('../models/venueGallery');
 const VenueAmenities= require('../models/venueAmenities');
+const VenuePrice= require('../models/venuePrice');
 
 // Create a new category configuration
 const createCategoryConfig= async (req, res) => {
@@ -95,6 +96,14 @@ const getVenuesByCategoryId= async (req, res) => {
                         }
                     },
                     {
+                        $lookup: {
+                            from: 'venueprices',
+                            localField: '_id',
+                            foreignField: 'venueId',
+                            as: 'prices'
+                        }
+                    },
+                    {
                         $project: {
                         name: 1,
                         location: 1,
@@ -116,8 +125,19 @@ const getVenuesByCategoryId= async (req, res) => {
                             as: "amenity",
                             in: "$$amenity.amenity"
                             }
+                        },
+                        prices: {
+                            $map: {
+                                input: "$prices",
+                                as: "price",
+                                in: {
+                                    price: "$$price.price",
+                                    offerredPrice: "$$price.offerredPrice",
+                                    ShowOfferredPrice: "$$price.ShowOfferredPrice"
+                                    
+                                }
+                            }   
                         }
-
                         }
                     }
                     ]);
@@ -226,10 +246,28 @@ const createAmenity= async (req, res) => {
     }
 };
 
+const createVenuePrice = async (req, res) => {
+    try {
+        const { price, venueId, offerredPrice, ShowOfferredPrice } = req.body;
+        const newVenuePrice = new VenuePrice({
+            price,
+            venueId,
+            offerredPrice,
+            ShowOfferredPrice
+        });
+        await newVenuePrice.save();
+        res.status(201).json({ data: { venuePrice: newVenuePrice }, message: "Venue price created successfully" });
+    } catch (error) {
+        console.error("Error creating venue price:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 module.exports= { 
     createCategoryConfig, 
     getAllCategoryConfigs,
     createVenues, 
+    createVenuePrice,
     createJewellery, 
     createPhotographer,
     getVenuesByCategoryId,

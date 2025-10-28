@@ -12,4 +12,5 @@ router.post('/getvenues', categoryController.getVenuesByCategoryId);
 router.post('/getjewelleries', categoryController.getJewelleryByCategoryId);
 router.post('/upload-venue-image', venue_images.single('image'), categoryController.uploadVenueImage);
 router.post('/add-amenity', categoryController.createAmenity);
+router.post('/add-venue-price', categoryController.createVenuePrice);
 module.exports = router;
