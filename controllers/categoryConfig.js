@@ -3,6 +3,7 @@ const Venue= require('../models/venue');
 const Jewellery= require('../models/jewellery');
 const Photographer= require('../models/photographer');
 const VenueGallery= require('../models/venueGallery');
+const VenueAmenities= require('../models/venueAmenities');
 
 // Create a new category configuration
 const createCategoryConfig= async (req, res) => {
@@ -86,6 +87,14 @@ const getVenuesByCategoryId= async (req, res) => {
                         }
                     },
                     {
+                        $lookup: {
+                        from:'venueamenities',
+                        localField:'_id',
+                        foreignField:'venueId',
+                        as:'amenities'
+                        }
+                    },
+                    {
                         $project: {
                         name: 1,
                         location: 1,
@@ -100,7 +109,15 @@ const getVenuesByCategoryId= async (req, res) => {
                                 imageUrl: "$$img.imageUrl"
                             }
                             }
+                        },
+                        amenities: {
+                            $map: {
+                            input: "$amenities",
+                            as: "amenity",
+                            in: "$$amenity.amenity"
+                            }
                         }
+
                         }
                     }
                     ]);
@@ -194,6 +211,21 @@ const uploadVenueImage= async (req, res) => {
     // Implementation for uploading venue image
 }
 
+const createAmenity= async (req, res) => {
+    try {
+        const { amenity, venueId } = req.body;
+        const newAmenity = new VenueAmenities({
+            amenity,
+            venueId
+        });
+        await newAmenity.save();
+        res.status(201).json({ data: { amenity: newAmenity }, message: "Amenity created successfully" });
+    } catch (error) {
+        console.error("Error creating amenity:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 module.exports= { 
     createCategoryConfig, 
     getAllCategoryConfigs,
@@ -202,5 +234,6 @@ module.exports= {
     createPhotographer,
     getVenuesByCategoryId,
     getJewelleryByCategoryId,
-    uploadVenueImage
-    };
+    uploadVenueImage,
+    createAmenity
+};
