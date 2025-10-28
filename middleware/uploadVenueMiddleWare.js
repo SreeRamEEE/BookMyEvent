@@ -1,7 +1,7 @@
 const multer = require('multer');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'category_thumbnails/');
+    cb(null, 'venue_images/');
   },
   filename: (req, file, cb) => {
     console.log(req)
@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + file.originalname.trim().replace(/\s+/g, '_'));
   }
 });
-const category_thumbnails = multer({ storage });
+const venue_images = multer({ storage });
 
 
-module.exports = category_thumbnails;
+module.exports = venue_images;
