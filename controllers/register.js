@@ -42,7 +42,7 @@ const registerUser= async (req,res)=>{
 const loginUser = async (req, res) => {
     const { mobile } = req.body;
     try {
-        const user = await Register.findOne({ mobile });
+        let user = await Register.findOne({ mobile });
         if (!user) {
             const otp = generateOtp();
             const newUser = new Register({
