@@ -14,4 +14,5 @@ router.post('/upload-venue-image', venue_images.single('image'), categoryControl
 router.post('/add-amenity', categoryController.createAmenity);
 router.post('/add-venue-price', categoryController.createVenuePrice);
 router.get('/get-venue-by-id/:id', categoryController.getVenueById);
+router.post('/add-venue-contact', categoryController.createVenueContact);
 module.exports = router;

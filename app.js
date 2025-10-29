@@ -47,6 +47,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // );
 
 app.use('/category_thumbnails', express.static(path.join(__dirname, 'category_thumbnails')));
+app.use('/venue_images', express.static(path.join(__dirname, 'venue_images')));
 app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
 // -------------------- Routes --------------------

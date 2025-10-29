@@ -5,6 +5,7 @@ const Photographer= require('../models/photographer');
 const VenueGallery= require('../models/venueGallery');
 const VenueAmenities= require('../models/venueAmenities');
 const VenuePrice= require('../models/venuePrice');
+const VenueContact= require('../models/venueContact');
 const mongoose = require('mongoose');
 
 // Create a new category configuration
@@ -313,6 +314,14 @@ const getVenueById = async (req, res) => {
         }
       },
       {
+        $lookup: {
+            from:'venuecontacts',
+            localField: '_id',
+            foreignField: 'venueId',
+            as: 'contacts'
+        }
+      },
+      {
         $project: {
           name: 1,
           location: 1,
@@ -345,6 +354,17 @@ const getVenueById = async (req, res) => {
                 ShowOfferredPrice: "$$price.ShowOfferredPrice"
               }
             }
+          },
+          contacts: {
+            $map: {
+              input: "$contacts",
+              as: "contact",
+              in: {
+                contactNumber: "$$contact.contactNumber",
+                email: "$$contact.email",
+                address: "$$contact.address"
+              }
+            }
           }
         }
       }
@@ -365,6 +385,25 @@ const getVenueById = async (req, res) => {
   }
 };
 
+const createVenueContact= async (req, res) => {
+    // Implementation for creating venue contact
+
+    try {
+        const { venueId, contactNumber, email, address } = req.body;
+        const newContact = new VenueContact({
+            venueId,
+            contactNumber,
+            email,
+            address
+        });
+        await newContact.save();
+        res.status(201).json({ data:{ contact: newContact }, message: "Venue contact created successfully" });
+    } catch (error) {
+        console.error("Error creating venue contact:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 module.exports= { 
     createCategoryConfig, 
     getAllCategoryConfigs,
@@ -376,5 +415,6 @@ module.exports= {
     getAllVenues,
     getJewelleryByCategoryId,
     uploadVenueImage,
-    createAmenity
+    createAmenity,
+    createVenueContact
 };
