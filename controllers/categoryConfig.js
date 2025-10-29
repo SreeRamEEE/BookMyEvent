@@ -5,6 +5,7 @@ const Photographer= require('../models/photographer');
 const VenueGallery= require('../models/venueGallery');
 const VenueAmenities= require('../models/venueAmenities');
 const VenuePrice= require('../models/venuePrice');
+const mongoose = require('mongoose');
 
 // Create a new category configuration
 const createCategoryConfig= async (req, res) => {
@@ -64,96 +65,107 @@ const createVenues= async (req, res) => {
     }
 }
 
-const getVenuesByCategoryId= async (req, res) => {
-    try {
-        const {  categoryName } = req.body;
-        const category = await categoryConfig.find({
-           category: { $regex: categoryName, $options: 'i' } 
-        });
-
-        console.log("Category found:", category);
-        if(!category){
-            return res.status(404).json({ message: "Category not found" });
-        }
-                    const venues = await Venue.aggregate([
-                    {
-                        $match: { category: category[0]._id }
-                    },
-                    {
-                        $lookup: {
-                        from: 'venuegalleries',
-                        localField: '_id',
-                        foreignField: 'venueId',
-                        as: 'galleryImages'
-                        }
-                    },
-                    {
-                        $lookup: {
-                        from:'venueamenities',
-                        localField:'_id',
-                        foreignField:'venueId',
-                        as:'amenities'
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: 'venueprices',
-                            localField: '_id',
-                            foreignField: 'venueId',
-                            as: 'prices'
-                        }
-                    },
-                    {
-                        $project: {
-                        name: 1,
-                        location: 1,
-                        capacity: 1,
-                        category: 1,
-                        galleryImages: {
-                            $map: {
-                            input: "$galleryImages",
-                            as: "img",
-                            in: {
-                                imageType: "$$img.imageType",
-                                imageUrl: "$$img.imageUrl"
-                            }
-                            }
-                        },
-                        amenities: {
-                            $map: {
-                            input: "$amenities",
-                            as: "amenity",
-                            in: "$$amenity.amenity"
-                            }
-                        },
-                        prices: {
-                            $map: {
-                                input: "$prices",
-                                as: "price",
-                                in: {
-                                    price: "$$price.price",
-                                    offerredPrice: "$$price.offerredPrice",
-                                    ShowOfferredPrice: "$$price.ShowOfferredPrice"
-                                    
-                                }
-                            }   
-                        }
-                        }
-                    }
-                    ]);
 
 
-        if (venues.length === 0) {
-            return res.status(404).json({ message: "No venues found for this category" });
-        } else {
-            return res.status(200).json({ data: { venues }, message: "Venues fetched successfully" });
-        }
-    
-    } catch (error) {
-        console.error("Error fetching venues:", error);
-        res.status(500).json({ message: "Internal server error" });
+const getAllVenues = async (req, res) => {
+  try {
+    const { categoryName } = req.body;
+
+    if (!categoryName) {
+      return res.status(400).json({ message: "Category name is required" });
     }
+
+    const category = await categoryConfig.find({
+      category: { $regex: categoryName, $options: 'i' }
+    });
+
+    if (!category || category.length === 0) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const categoryId = category[0]._id;
+
+    const venues = await Venue.aggregate([
+      {
+        $match: { category: new mongoose.Types.ObjectId(categoryId) }
+      },
+      {
+        $lookup: {
+          from: 'venuegalleries',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'galleryImages'
+        }
+      },
+      {
+        $lookup: {
+          from: 'venueamenities',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'amenities'
+        }
+      },
+      {
+        $lookup: {
+          from: 'venueprices',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'prices'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          location: 1,
+          capacity: 1,
+          category: 1,
+          galleryImages: {
+            $map: {
+              input: "$galleryImages",
+              as: "img",
+              in: {
+                imageType: "$$img.imageType",
+                imageUrl: "$$img.imageUrl"
+              }
+            }
+          },
+          amenities: {
+            $map: {
+              input: "$amenities",
+              as: "amenity",
+              in: "$$amenity.amenity"
+            }
+          },
+          prices: {
+            $map: {
+              input: "$prices",
+              as: "price",
+              in: {
+               price: "$$price.price",
+                offerredPrice: "$$price.offerredPrice",
+                ShowOfferredPrice: "$$price.ShowOfferredPrice"
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    if (venues.length === 0) {
+      return res.status(404).json({ message: "No venues found for this category" });
+    }
+
+    return res.status(200).json({
+      data: venues,
+      message: "Venues fetched successfully"
+    });
+
+  } catch (error) {
+    console.error("Error fetching venues:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 
 const getJewelleryByCategoryId= async (req, res) => {
     try {
@@ -263,14 +275,105 @@ const createVenuePrice = async (req, res) => {
     }
 };
 
+
+
+
+const getVenueById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid venue ID" });
+    }
+
+    const venue = await Venue.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'venuegalleries',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'galleryImages'
+        }
+      },
+      {
+        $lookup: {
+          from: 'venueamenities',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'amenities'
+        }
+      },
+      {
+        $lookup: {
+          from: 'venueprices',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'prices'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          location: 1,
+          capacity: 1,
+          category: 1,
+          galleryImages: {
+            $map: {
+              input: "$galleryImages",
+              as: "img",
+              in: {
+                imageType: "$$img.imageType",
+                imageUrl: "$$img.imageUrl"
+              }
+            }
+          },
+          amenities: {
+            $map: {
+              input: "$amenities",
+              as: "amenity",
+              in: "$$amenity.amenity"
+            }
+          },
+          prices: {
+            $map: {
+              input: "$prices",
+              as: "price",
+              in: {
+                price: "$$price.price",
+                offerredPrice: "$$price.offerredPrice",
+                ShowOfferredPrice: "$$price.ShowOfferredPrice"
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    if (!venue.length) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
+    res.status(200).json({
+      data: venue[0],
+      message: "Venue fetched successfully"
+    });
+
+  } catch (error) {
+    console.error("Error fetching venue:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports= { 
     createCategoryConfig, 
     getAllCategoryConfigs,
+    getVenueById,
     createVenues, 
     createVenuePrice,
     createJewellery, 
     createPhotographer,
-    getVenuesByCategoryId,
+    getAllVenues,
     getJewelleryByCategoryId,
     uploadVenueImage,
     createAmenity
