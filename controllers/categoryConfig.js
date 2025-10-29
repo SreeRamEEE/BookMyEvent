@@ -115,6 +115,24 @@ const getAllVenues = async (req, res) => {
         }
       },
       {
+        $lookup: {
+            from:'venuecontacts',
+            localField: '_id',
+            foreignField: 'venueId',
+            as: 'contacts'
+        }
+      },
+
+      {
+        $lookup: {
+          from : 'venuebookings',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'bookings'
+        }
+      },
+      
+      {
         $project: {
           name: 1,
           location: 1,
@@ -145,6 +163,26 @@ const getAllVenues = async (req, res) => {
                price: "$$price.price",
                 offerredPrice: "$$price.offerredPrice",
                 ShowOfferredPrice: "$$price.ShowOfferredPrice"
+              }
+            }
+          },
+          contacts: {
+            $map: {
+              input: "$contacts",
+              as: "contact",
+              in: {
+                contactNumber: "$$contact.contactNumber",
+                email: "$$contact.email",
+                address: "$$contact.address"
+              }
+            }
+          },
+          bookings: {
+            $map: {
+              input: "$bookings",
+              as: "booking",
+              in: {
+                date: "$$booking.date",
               }
             }
           }
@@ -322,6 +360,14 @@ const getVenueById = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from : 'venuebookings',
+          localField: '_id',
+          foreignField: 'venueId',
+          as: 'bookings'
+        }
+      },
+      {
         $project: {
           name: 1,
           location: 1,
@@ -363,6 +409,15 @@ const getVenueById = async (req, res) => {
                 contactNumber: "$$contact.contactNumber",
                 email: "$$contact.email",
                 address: "$$contact.address"
+              }
+            }
+          },
+          bookings: {
+            $map: {
+              input: "$bookings",
+              as: "booking",
+              in: {
+                date: "$$booking.date",
               }
             }
           }

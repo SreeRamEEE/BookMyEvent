@@ -53,6 +53,9 @@ app.use('/videos', express.static(path.join(__dirname, 'videos')));
 // -------------------- Routes --------------------
 const registerRoutes = require("./routes/register");
 const categoryRoutes = require("./routes/categoryConfig");
+const venueBookingRoutes = require("./routes/bookVenue");
+
+app.use("/api", venueBookingRoutes);
 
 app.use("/api", categoryRoutes);
 
