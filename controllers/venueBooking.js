@@ -54,6 +54,15 @@ const getVenueBookingsByUser = async (req, res) => {
         }
       },
       { $unwind: '$venuePrice' },
+      {
+        $lookup: {
+          from: 'venuegalleries',
+          localField: 'venueId',
+          foreignField: 'venueId',
+          as: 'venueGallery'
+        }
+      },
+      { $unwind: '$venueGallery' },
       { $project: {
           _id: 1,
           date: 1,
@@ -68,7 +77,8 @@ const getVenueBookingsByUser = async (req, res) => {
             _id: '$venue._id',
             name: '$venue.name',
             location: '$venue.location',
-             price: '$venuePrice.price'
+             price: '$venuePrice.price',
+              image: '$venueGallery.imageUrl'
           },
         
         }
