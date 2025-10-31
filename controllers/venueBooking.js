@@ -54,15 +54,26 @@ const getVenueBookingsByUser = async (req, res) => {
         }
       },
       { $unwind: '$venuePrice' },
-      {
+     {
         $lookup: {
           from: 'venuegalleries',
-          localField: 'venueId',
-          foreignField: 'venueId',
+          let: { venueId: '$venueId' },
+          pipeline: [
+            { 
+              $match: { 
+                $expr: { 
+                  $eq: ['$venueId', '$$venueId'] 
+                } 
+              } 
+            },
+            { $limit: 1 } // ✅ works properly inside lookup
+          ],
           as: 'venueGallery'
         }
       },
-      { $unwind: '$venueGallery' },
+      {
+        $unwind: '$venueGallery'
+      },
       { $project: {
           _id: 1,
           date: 1,
