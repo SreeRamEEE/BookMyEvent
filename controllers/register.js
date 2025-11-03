@@ -66,7 +66,8 @@ const loginUser = async (req, res) => {
             const otp = generateOtp();
             user.otp = otp;
             user.otpExpires = Date.now() + 5 * 60 * 1000;
-            await user.save();
+            if(isAgent && user.isAgent===true){
+               await user.save();
             res.status(200).json({
                 data: {
                     mobile,
@@ -74,6 +75,22 @@ const loginUser = async (req, res) => {
                 },
                 message: "OTP sent successfully"
             });
+            }else if(!isAgent){
+                await user.save();
+            res.status(200).json({
+                data: {
+                    mobile,
+                    otp
+                },
+                message: "OTP sent successfully"
+            });
+            }else if(isAgent && user.isAgent===false){
+                return res.status(403).json({
+                    data: null,
+                    message: "Access denied. Not registered as agent."
+                });
+            }
+           
         }
      
     } catch (error) {
