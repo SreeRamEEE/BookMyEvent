@@ -24,7 +24,7 @@ const registerUser= async (req,res)=>{
             });
         }
         const otp = generateOtp();
-        const newUser = new Register({ mobile, name, isAgent, isOtpVerified, otp, otpExpires: Date.now() + 5 * 60 * 1000 });
+        const newUser = new Register({ mobile, name, isAgent: isAgent || false, isOtpVerified, otp, otpExpires: Date.now() + 5 * 60 * 1000 });
         await newUser.save();
         res.status(200).json({
             data:{
@@ -40,7 +40,7 @@ const registerUser= async (req,res)=>{
 };
 
 const loginUser = async (req, res) => {
-    const { mobile } = req.body;
+    const { mobile, isAgent } = req.body;
     try {
         let user = await Register.findOne({ mobile });
         if (!user) {
@@ -49,7 +49,7 @@ const loginUser = async (req, res) => {
                  mobile,
                   otp,
                   otpExpires: Date.now() + 5 * 60 * 1000,
-                  isAgent: false,
+                  isAgent: isAgent || false,
                   isOtpVerified: false,
                   name: "Guest"
               });
@@ -104,7 +104,7 @@ const verifyOtp = async (req, res) => {
         user.isOtpVerified = true;
         await user.save();
         res.status(200).json({
-            data: { userId: user._id, name: user.name },
+            data: { userId: user._id, name: user.name,isAgent: user.isAgent },
             message: "OTP verified successfully"
         });
     } catch (error) {
