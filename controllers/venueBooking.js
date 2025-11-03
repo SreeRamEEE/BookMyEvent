@@ -1,4 +1,3 @@
-
 const VenueBooking= require('../models/venueBooking');
 const mongoose = require('mongoose');
 
@@ -54,6 +53,15 @@ const getVenueBookingsByUser = async (req, res) => {
         }
       },
       { $unwind: '$venuePrice' },
+         {
+        $lookup: {
+          from :'venuecontacts',
+          localField: 'venueId',
+          foreignField: 'venueId',
+          as: 'venueContact'
+        }
+      },
+      { $unwind: '$venueContact' },
      {
         $lookup: {
           from: 'venuegalleries',
@@ -89,7 +97,11 @@ const getVenueBookingsByUser = async (req, res) => {
             name: '$venue.name',
             location: '$venue.location',
              price: '$venuePrice.price',
-              image: '$venueGallery.imageUrl'
+              image: '$venueGallery.imageUrl',
+              address:'$venueContact.address',
+              contactNumber:'$venueContact.contactNumber',
+              email:'$venueContact.email'
+
           },
         
         }
