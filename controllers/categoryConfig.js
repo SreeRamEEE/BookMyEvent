@@ -260,42 +260,66 @@ const createPhotographer= async (req, res) => {
     }
 };
 
-const uploadVenueImage= async (req, res) => {
-    try {  
-        const { venueId,imageType } = req.body;
-        const image = req.file ? `/venue_images/${req.file.filename}` : '';
-        const venue = await Venue.findById(venueId);
-        if (!venue) {
-            return res.status(404).json({ message: "Venue not found" });
-        }
-        const newGalleryImage = new VenueGallery({
-            venueId: venue._id,
-            imageUrl: image,
-            imageType: imageType || 'gallery'
-        });
-        await newGalleryImage.save();
-        res.status(201).json({ data: { image: newGalleryImage }, message: "Venue image uploaded successfully" });
-    } catch (error) {
-        console.error("Error uploading venue image:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-    // Implementation for uploading venue image
-}
+const uploadVenueImage = async (req, res) => {
+  try {
+    const { venueId, imageType } = req.body;
+    const files = req.files; // <-- multiple files here
 
-const createAmenity= async (req, res) => {
-    try {
-        const { amenity, venueId } = req.body;
-        const newAmenity = new VenueAmenities({
-            amenity,
-            venueId
-        });
-        await newAmenity.save();
-        res.status(201).json({ data: { amenity: newAmenity }, message: "Amenity created successfully" });
-    } catch (error) {
-        console.error("Error creating amenity:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No images uploaded" });
     }
+
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
+    // Build array of gallery image documents
+    const galleryImages = files.map((file) => ({
+      venueId: venue._id,
+      imageUrl: `/venue_images/${file.filename}`,
+      imageType: imageType || "gallery",
+    }));
+
+    // Insert all at once
+    const savedImages = await VenueGallery.insertMany(galleryImages);
+
+    res.status(201).json({
+      data: savedImages,
+      message: "Venue images uploaded successfully",
+    });
+  } catch (error) {
+    console.error("Error uploading venue images:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
+
+const createAmenity = async (req, res) => {
+  try {
+    const { amenities, venueId } = req.body; // amenities should be an array of strings
+
+    if (!Array.isArray(amenities) || amenities.length === 0) {
+      return res.status(400).json({ message: "Amenities must be a non-empty array" });
+    }
+
+    const newAmenities = amenities.map(a => ({
+      amenity: a,
+      venueId
+    }));
+
+    const savedAmenities = await VenueAmenities.insertMany(newAmenities);
+
+    res.status(201).json({
+      data: savedAmenities,
+      message: "Amenities created successfully"
+    });
+  } catch (error) {
+    console.error("Error creating amenities:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 const createVenuePrice = async (req, res) => {
     try {

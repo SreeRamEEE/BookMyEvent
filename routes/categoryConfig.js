@@ -10,7 +10,7 @@ router.post('/add-jewellery', categoryController.createJewellery);
 router.post('/add-photographer', categoryController.createPhotographer);
 router.post('/getvenues', categoryController.getAllVenues);
 router.post('/getjewelleries', categoryController.getJewelleryByCategoryId);
-router.post('/upload-venue-image', venue_images.single('image'), categoryController.uploadVenueImage);
+router.post('/upload-venue-image', venue_images.array('images',10), categoryController.uploadVenueImage);
 router.post('/add-amenity', categoryController.createAmenity);
 router.post('/add-venue-price', categoryController.createVenuePrice);
 router.get('/get-venue-by-id/:id', categoryController.getVenueById);
