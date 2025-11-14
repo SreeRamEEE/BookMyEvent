@@ -55,6 +55,9 @@ const registerRoutes = require("./routes/register");
 const categoryRoutes = require("./routes/categoryConfig");
 const venueBookingRoutes = require("./routes/bookVenue");
 const venueRoutes = require("./routes/venue");
+const uploadTrackRoutes = require("./routes/uploadTrack");
+
+app.use("/api", uploadTrackRoutes);
 
 app.use("/api", venueRoutes);
 
