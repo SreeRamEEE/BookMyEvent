@@ -24,7 +24,7 @@ mongoose
 // -------------------- Middleware --------------------
 app.use(
   cors({
-    origin: "https://book-my-event-7qq4.vercel.app/", // frontend URL (same in prod)
+    origin: "https://book-my-event-7qq4.vercel.app", // frontend URL (same in prod)
     credentials: true,
 
   })
