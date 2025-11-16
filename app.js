@@ -24,10 +24,13 @@ mongoose
 // -------------------- Middleware --------------------
 app.use(
   cors({
-    origin: "http://localhost:3000", // frontend URL (same in prod)
+    origin: "https://book-my-event-7qq4.vercel.app/", // frontend URL (same in prod)
     credentials: true,
+
   })
 );
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
