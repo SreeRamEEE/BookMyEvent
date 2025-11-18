@@ -38,7 +38,7 @@ const getAllCategoryConfigs= async (req, res) => {
                 location: cat.location,
                 description: cat.description,
                 categoryId: cat._id,
-                imageUrl: `http://localhost:8080${cat.imageUrl}`
+                imageUrl: `${cat.imageUrl}`
             })
             )
           res.status(200).json({ data: { categories: mappedCategories }, message: "Category configurations fetched successfully" });
